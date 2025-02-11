@@ -4,14 +4,22 @@ import time
 import yaml
 import random
 import asyncio
+from threading import Lock
 
 from typing import Optional
 from glob import glob
+
+if TYPE_CHECKING:
+    from giga import GigaChat
+
 
 # API setting constants
 API_MAX_RETRY = 16
 API_RETRY_SLEEP = 10
 API_ERROR_OUTPUT = "$ERROR$"
+
+CLIENT: Optional["GigaChat"] = None
+LOCK = Lock()
 
 
 OPENAI_MODEL_LIST = (
@@ -94,27 +102,29 @@ def make_config(config_file: str) -> dict:
     return config_kwargs
 
 def chat_completion_gigachat(model, messages, temperature, max_tokens, api_dict=None):
-    from gigachat import GigaChat
-    from gigachat.models import Chat, Messages
-    assert api_dict is not None, "no api settings provided!"
-    client = GigaChat(model=model, verify_ssl_certs=False, **api_dict)
-    top_p = 1
-    if temperature == 0:
-        temperature = 1
-        top_p = 0
-
-    messages = [Messages.parse_obj(m) for m in messages]
-    chat = Chat(messages=messages, max_tokens=max_tokens, temperature=temperature, top_p=top_p)
+    global CLIENT
     
+    from giga import GigaChat
+    
+    with LOCK:
+        if CLIENT is None:
+            CLIENT = GigaChat()
+
     output = API_ERROR_OUTPUT
     for _ in range(API_MAX_RETRY):
         try:
-            output = client.chat(chat)
-            output = output.choices[0].message.content
+            completion = CLIENT.chat(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens
+                )
+            output = completion['choices'][0]['message']['content']
             break
-        # Don't know other errors
+        except KeyError:
+            print(type(e), e)
+            break
         except Exception as e:
-
             print(type(e), e)
             time.sleep(API_RETRY_SLEEP)
     
