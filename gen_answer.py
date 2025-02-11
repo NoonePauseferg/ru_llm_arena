@@ -69,7 +69,7 @@ def get_answer(
                                                  temperature=temperature,
                                                  max_tokens=max_tokens,
                                                  api_dict=api_dict)
-            elif api_type == "gigachat":
+            elif api_type == "giga":
                 output = chat_completion_gigachat(model=endpoint_info["model_name"],
                                                  messages=conv,
                                                  temperature=temperature,
