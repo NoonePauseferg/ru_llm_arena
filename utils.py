@@ -4,6 +4,7 @@ import time
 import yaml
 import random
 import asyncio
+from typing import TYPE_CHECKING
 from threading import Lock
 
 from typing import Optional
