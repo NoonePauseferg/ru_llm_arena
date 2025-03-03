@@ -124,23 +124,31 @@ if __name__ == "__main__":
     parser.add_argument(
         "--endpoint-file", type=str, default="config/api_config.yaml"
     )
+    parser.add_argument(
+        "--save_path", type=str, required=True
+    )
+    parser.add_argument(
+        "--model_name", type=str, required=True
+    )
     args = parser.parse_args()
 
     settings = make_config(args.setting_file)
     endpoint_list = make_config(args.endpoint_file)
 
-    existing_answer = load_model_answers(os.path.join("data", settings["bench_name"], "model_answer"))
+    existing_answer = load_model_answers(os.path.join(args.save_path, "data", settings["bench_name"], "model_answer"))
     
     print(settings)
 
     for model in settings["model_list"]:
         assert model in endpoint_list
         endpoint_info = endpoint_list[model]
+        if 'giga' in model:
+            endpoint_info["model_name"] = args.model_name
 
-        question_file = os.path.join("data", settings["bench_name"], "question.jsonl")
+        question_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/ru-llm-arena", settings["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
 
-        answer_file = os.path.join("data", settings["bench_name"], "model_answer", f"{model}.jsonl")
+        answer_file = os.path.join(args.save_path, "../../data", settings["bench_name"], "model_answer", f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
         if "parallel" in endpoint_info:
