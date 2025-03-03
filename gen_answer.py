@@ -148,7 +148,7 @@ if __name__ == "__main__":
         question_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/ru-llm-arena", settings["bench_name"], "question.jsonl")
         questions = load_questions(question_file)
 
-        answer_file = os.path.join(args.save_path, "../../data", settings["bench_name"], "model_answer", f"{model}.jsonl")
+        answer_file = os.path.join(args.save_path, settings["bench_name"], "model_answer", f"{model}.jsonl")
         print(f"Output to {answer_file}")
 
         if "parallel" in endpoint_info:
