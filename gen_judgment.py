@@ -131,6 +131,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting-file", type=str, default="config/judge_config.yaml")
     parser.add_argument("--endpoint-file", type=str, default="config/api_config.yaml")
+    parser.add_argument("--out_dir", required=True)
     args = parser.parse_args()
     print(args)
 
@@ -143,9 +144,11 @@ if __name__ == "__main__":
     if configs["regex_pattern"]:
         pattern = re.compile(configs["regex_pattern"])
 
-    question_file = os.path.join("data", configs["bench_name"], "question.jsonl")
-    answer_dir = os.path.join("data", configs["bench_name"], "model_answer")
-    ref_answer_dir = os.path.join("data", configs["bench_name"], "reference_answer")
+    question_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/ru-llm-arena", configs["bench_name"], "question.jsonl")
+    ref_answer_dir = None
+    answer_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../data/ru-llm-arena", configs["bench_name"], "model_answer")
+    tmp_path = os.path.join(args.out_dir, configs['bench_name'], 'model_answer')
+    os.system(f'cp -r {tmp_path}/* {answer_dir}')
 
     questions = load_questions(question_file)
     model_answers = load_model_answers(answer_dir)
@@ -159,7 +162,8 @@ if __name__ == "__main__":
         ref_answers = [ref_answers[model] for model in configs["ref_model"]]
     
     output_files = {}
-    output_dir = f"data/{configs['bench_name']}/model_judgment/{configs['judge_model']}"
+    output_dir = f"{args.out_dir}/{configs['bench_name']}/model_judgment/{configs['judge_model']}"
+
     for model in models:
         output_files[model] = os.path.join(
             output_dir,
